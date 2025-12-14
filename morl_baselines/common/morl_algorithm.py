@@ -1,7 +1,7 @@
 """MORL algorithm base classes."""
 
 import os
-import time
+from datetime import datetime
 from abc import ABC, abstractmethod
 from distutils.util import strtobool
 from typing import Dict, Literal, Optional, Union
@@ -309,7 +309,8 @@ class MOAgent(ABC):
         """
         self.experiment_name = experiment_name
         env_id = self.env.spec.id if not isinstance(self.env, MOSyncVectorEnv) else self.env.envs[0].spec.id
-        self.full_experiment_name = f"{env_id}__{experiment_name}__{self.seed}__{int(time.time())}"
+        cur = datetime.now().strftime("%Y%m%d%H%M%S")
+        self.full_experiment_name = f"{env_id}_{experiment_name}_{self.seed}_{cur}"
         import wandb
 
         config = self.get_config()
