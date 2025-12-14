@@ -6,7 +6,7 @@ conda create -n morl python=3.10
 echo "执行conda activate morl"
 conda activate morl
 
-
+# Darwin环境下不能跑gpi和ols算法
 # 安装依赖
 OS="$(uname -s)"
 if [ "$OS" = "Darwin" ]; then
@@ -23,3 +23,7 @@ else
     echo "依赖安装失败！"
 fi
 python -c "import morl_baselines; print('✅ morl-baselines 导入成功')"
+
+wandb login --relogin
+# wandb API Key:
+# b8826bf5fd0bd6e612b9489e259f4f3669dbce35

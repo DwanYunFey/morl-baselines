@@ -1,0 +1,10 @@
+name: morl
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - setuptools<81
+  - wheel
+  - pip:
+      - -r requirements-lock.txt
