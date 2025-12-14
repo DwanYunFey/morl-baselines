@@ -318,8 +318,12 @@ class MOAgent(ABC):
         monitor_gym = strtobool(os.environ.get("MONITOR_GYM", "True"))
 
         if entity is None:
-            entity = os.environ.get("WANDB_ENTITY", "duan-yun-fei-beijing-institute-of-technology")
-
+            team = "duan-yun-fei-beijing-institute-of-technology"
+            entity = os.environ.get("WANDB_ENTITY", team)
+        
+        if mode is None:
+            mode = os.environ.get("WANDB_MODE", "offline")
+        
         wandb.init(
             project=project_name,
             entity=entity,
