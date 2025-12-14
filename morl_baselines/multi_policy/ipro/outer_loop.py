@@ -69,7 +69,7 @@ class OuterLoop(MOAgent):
         experiment_name: Optional[str] = None,
         project_name: Optional[str] = None,
         wandb_entity: Optional[str] = None,
-        wandb_mode: Literal["online", "offline", "disabled"] = "online",
+        wandb_mode: Literal["online", "offline", "disabled"] = "offline",
         seed: Optional[int] = None,
         **kwargs,
     ):

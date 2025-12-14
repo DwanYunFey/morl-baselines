@@ -55,7 +55,7 @@ class IPRO(OuterLoop):
         experiment_name: Optional[str] = "IPRO",
         project_name: str = "MORL-Baselines",
         wandb_entity: str = None,
-        wandb_mode: Literal["online", "offline", "disabled"] = "online",
+        wandb_mode: Literal["online", "offline", "disabled"] = "offline",
         seed: int = 1,
         rng: Union[np.random.Generator, None] = None,
     ):

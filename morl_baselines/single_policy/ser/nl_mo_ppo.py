@@ -119,7 +119,7 @@ class NLMOPPO(MOPolicy):
         experiment_name: Optional[str] = "NLMOPPO",
         wandb_project_name: str = "MORL-Baselines",
         wandb_entity: str = None,
-        wandb_mode: Literal["online", "offline", "disabled"] = "online",
+        wandb_mode: Literal["online", "offline", "disabled"] = "offline",
         total_timesteps: int = 500000,
         learning_rate: float = 2.5e-4,
         num_steps: int = 128,
