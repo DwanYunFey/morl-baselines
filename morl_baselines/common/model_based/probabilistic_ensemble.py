@@ -6,6 +6,7 @@ import numpy as np
 import torch as th
 from torch import nn as nn
 from torch.nn import functional as F
+from morl_baselines.common.device import avilable_device
 
 
 class EnsembleLayer(nn.Module):
@@ -78,10 +79,7 @@ class ProbabilisticEnsemble(nn.Module):
         self.max_logvar = nn.Parameter(th.ones(1, output_dim, dtype=th.float32) / 2.0)
         self.min_logvar = nn.Parameter(-th.ones(1, output_dim, dtype=th.float32) * 10.0)
 
-        if device == "auto":
-            self.device = th.device("cuda") if th.cuda.is_available() else th.device("cpu")
-        else:
-            self.device = device
+        self.device = avilable_device() if device == "auto" else device
         self.to(self.device)
 
     def forward(self, input, deterministic=False, return_dist=False):

@@ -13,7 +13,7 @@ import torch.nn
 import wandb
 from gymnasium import spaces
 from mo_gymnasium.wrappers.vector import MOSyncVectorEnv
-
+from morl_baselines.common.device import avilable_device
 from morl_baselines.common.evaluation import (
     eval_mo_reward_conditioned,
     policy_evaluation_mo,
@@ -39,7 +39,7 @@ class MOPolicy(ABC):
             device: The device to use for the tensors
         """
         self.id = id
-        self.device = th.device("cuda" if th.cuda.is_available() else "cpu") if device == "auto" else device
+        self.device = avilable_device() if device == "auto" else device
         self.global_step = 0
 
     @abstractmethod
@@ -238,7 +238,7 @@ class MOAgent(ABC):
             seed: (int): The seed to use for the random number generator
         """
         self.extract_env_info(env)
-        self.device = th.device("cuda" if th.cuda.is_available() else "cpu") if device == "auto" else device
+        self.device = avilable_device() if device == "auto" else device
 
         self.global_step = 0
         self.num_episodes = 0
