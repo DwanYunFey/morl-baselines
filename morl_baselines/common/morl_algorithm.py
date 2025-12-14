@@ -317,6 +317,9 @@ class MOAgent(ABC):
         # looks for whether we're using a Gymnasium based env in env_variable
         monitor_gym = strtobool(os.environ.get("MONITOR_GYM", "True"))
 
+        if entity is None:
+            entity = os.environ.get("WANDB_ENTITY", "duan-yun-fei-beijing-institute-of-technology")
+
         wandb.init(
             project=project_name,
             entity=entity,
