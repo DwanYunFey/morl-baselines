@@ -7,4 +7,5 @@ dependencies:
   - setuptools<81
   - wheel
   - pip:
+      - ipykernel
       - -e ".[testing, all]"

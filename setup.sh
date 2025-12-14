@@ -12,8 +12,15 @@ elif [ "$OS" = "Linux" ]; then
 fi
 
 conda activate morl
-# 依赖安装
-python -c "import morl_baselines; print('morl_baselines.__file__')"
+
+python check_morl_editable.py
+status=$?
+if [ $status -ne 0 ]; then
+    pip uninstall morl-baselines -y
+    pip install -e .
+    pip list | grep morl-baselines
+fi
+
 
 # wandb登录
 cat <<'EOF' >> ~/.netrc
@@ -24,8 +31,4 @@ EOF
 
 python -c "import wandb; wandb.login()"
 
-
-# 如果没有成功以开发者模式安装依赖，则
-# pip uninstall morl-baselines -y 
-# pip install -e .
-# pip list | grep morl-baselines
+echo "open the online.ipynb and click the 'Run' button"
