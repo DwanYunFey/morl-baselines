@@ -2,7 +2,7 @@ import torch, math
 from torch import nn
 import numpy as np
 import torch.nn.init as init
-from agent import Agent
+from morl_baselines.multi_policy.mopac.agent import Agent
 
 class PAC(Agent):
     _agent_name = "PAC"

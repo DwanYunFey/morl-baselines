@@ -7,5 +7,6 @@ dependencies:
   - setuptools<81
   - wheel
   - pip:
-      - ipykernel
+      h- "ipykernel"
       - -e ".[testing]"
+      - "gymnasium[mujoco]"

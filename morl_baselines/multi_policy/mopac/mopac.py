@@ -16,8 +16,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import wandb
 from mo_gymnasium.wrappers.vector import MOSyncVectorEnv
-
-from mopac.architectures import MOCriticNetEpistemic, MOActorNetProbabilistic
+from morl_baselines.multi_policy.mopac.architectures import MOCriticNetEpistemic, MOActorNetProbabilistic
 
 from morl_baselines.common.buffer import ReplayBuffer
 from morl_baselines.common.evaluation import log_episode_info, log_all_multi_policy_metrics
