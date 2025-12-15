@@ -2,7 +2,7 @@ import mo_gymnasium as mo_gym
 import numpy as np
 import torch  #noqa: F401
 
-from mopac.mopac import MOPAC
+from morl_baselines.multi_policy.mopac.mopac import MOPAC
 
 
 def main():
