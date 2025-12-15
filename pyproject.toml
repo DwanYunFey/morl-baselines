@@ -39,6 +39,7 @@ dependencies = [
     "cvxpy",
     "fire",
     "sortedcontainers",
+    "gym-super-mario-bros"
 ]
 dynamic = ["version"]
 

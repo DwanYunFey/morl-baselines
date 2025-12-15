@@ -27,7 +27,11 @@ class AccruedRewardReplayBuffer:
             action_dtype: Data type of the actions
         """
         self.max_size = max_size
+        # 循环队列的队头指针和队列大小
         self.ptr, self.size = 0, 0
+        # obs_shape 和 action_shape 是 (obs_dim,) 和 (action_dim,) 的形式
+        # (max_size,) + obs_shape = (max_size, obs_dim)
+        # (max_size,) + action_shape = (max_size, action_dim)
         self.obs = np.zeros((max_size,) + obs_shape, dtype=obs_dtype)
         self.next_obs = np.zeros((max_size,) + obs_shape, dtype=obs_dtype)
         self.actions = np.zeros((max_size,) + action_shape, dtype=action_dtype)
@@ -46,6 +50,8 @@ class AccruedRewardReplayBuffer:
             next_obs: Next observation
             done: Done
         """
+        # obs 有可能是标量或列表，其他变量取决于 gym 环境
+        # 假设 obs 是一个 numpy 数组，则 np.array(obs) 可能会共享内存
         self.obs[self.ptr] = np.array(obs).copy()
         self.next_obs[self.ptr] = np.array(next_obs).copy()
         self.actions[self.ptr] = np.array(action).copy()
@@ -68,6 +74,7 @@ class AccruedRewardReplayBuffer:
         Returns:
             Tuple of (obs, accrued_rewards, actions, rewards, next_obs, dones)
         """
+        # 从 [0, size) 中随机采样 batch_size 个索引，replace=replace 表示是否允许重复采样
         inds = np.random.choice(self.size, batch_size, replace=replace)
         if use_cer:
             inds[0] = self.ptr - 1  # always use last experience
@@ -79,7 +86,7 @@ class AccruedRewardReplayBuffer:
             self.next_obs[inds],
             self.dones[inds],
         )
-        if to_tensor:
+        if to_tensor: # 将元组的每个元素转换为张量
             return tuple(map(lambda x: th.tensor(x).to(device), experience_tuples))
         else:
             return experience_tuples

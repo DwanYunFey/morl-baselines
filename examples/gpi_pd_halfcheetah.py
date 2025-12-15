@@ -10,9 +10,9 @@ from morl_baselines.multi_policy.gpi_pd.gpi_pd_continuous_action import (
 # from gymnasium.wrappers.record_video import RecordVideo
 
 
-def main(algo: str, gpi_pd: bool, g: int, timesteps_per_iter: int = 10000):
+def main(algo: str, gpi_pd: bool, g: int, timesteps_per_iter: int = 20000):
     def make_env(record_episode_statistics: bool = False):
-        env = mo_gym.make("mo-hopper-v4", cost_objective=True, max_episode_steps=500)
+        env = mo_gym.make("mo-hopper-2obj-v5")
         if record_episode_statistics:
             env = mo_gym.wrappers.wrappers.MORecordEpisodeStatistics(env, gamma=0.99)
         return env
@@ -42,9 +42,9 @@ def main(algo: str, gpi_pd: bool, g: int, timesteps_per_iter: int = 10000):
     )
 
     agent.train(
-        total_timesteps=20 * timesteps_per_iter,
+        total_timesteps=10 * timesteps_per_iter,
         eval_env=eval_env,
-        ref_point=np.array([-100.0, -100.0, -100.0]),
+        ref_point=np.array([-100.0, -100.0]),
         known_pareto_front=None,
         weight_selection_algo=algo,
         timesteps_per_iter=timesteps_per_iter,
