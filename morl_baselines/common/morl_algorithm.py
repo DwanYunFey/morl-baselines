@@ -12,11 +12,11 @@ import torch as th
 import torch.nn
 import wandb
 from gymnasium import spaces
-from mo_gymnasium.wrappers.vector import MOSyncVectorEnv
-from morl_baselines.common.device import avilable_device
+from mo_gymnasium.wrappers.vector import MOSyncVectorEnv  # 多目标环境向量化包装
+from morl_baselines.common.device import avilable_device  # 自动检测可用设备
 from morl_baselines.common.evaluation import (
-    eval_mo_reward_conditioned,
-    policy_evaluation_mo,
+    eval_mo_reward_conditioned,  # 单步多目标策略评估
+    policy_evaluation_mo,  # 多集多目标策略评估
 )
 
 
@@ -38,9 +38,9 @@ class MOPolicy(ABC):
             id: The id of the policy
             device: The device to use for the tensors
         """
-        self.id = id
-        self.device = avilable_device() if device == "auto" else device
-        self.global_step = 0
+        self.id = id  # 策略ID（区分多策略场景中的不同策略）
+        self.device = avilable_device() if device == "auto" else device  # 计算设备
+        self.global_step = 0  # 全局步数计数器
 
     @abstractmethod
     def eval(self, obs: np.ndarray, w: Optional[np.ndarray]) -> Union[int, np.ndarray]:
@@ -62,23 +62,26 @@ class MOPolicy(ABC):
         discounted_vec_return,
     ):
         """Writes the data to wandb summary."""
+        # 根据策略ID生成标记字符串
         if self.id is None:
             idstr = ""
         else:
             idstr = f"_{self.id}"
 
+        # 记录加权标量回报
         wandb.log(
             {
-                f"eval{idstr}/scalarized_return": scalarized_return,
-                f"eval{idstr}/scalarized_discounted_return": scalarized_discounted_return,
+                f"eval{idstr}/scalarized_return": scalarized_return,  # 平均加权回报
+                f"eval{idstr}/scalarized_discounted_return": scalarized_discounted_return,  # 折扣加权回报
                 "global_step": self.global_step,
             }
         )
+        # 记录每个目标维度的回报
         for i in range(vec_return.shape[0]):
             wandb.log(
                 {
-                    f"eval{idstr}/vec_{i}": vec_return[i],
-                    f"eval{idstr}/discounted_vec_{i}": discounted_vec_return[i],
+                    f"eval{idstr}/vec_{i}": vec_return[i],  # 第i个目标的平均回报
+                    f"eval{idstr}/discounted_vec_{i}": discounted_vec_return[i],  # 折扣回报
                 },
             )
 
@@ -107,8 +110,9 @@ class MOPolicy(ABC):
             scalarized_discounted_return,
             vec_return,
             discounted_vec_return,
-        ) = policy_evaluation_mo(self, eval_env, scalarization=scalarization, w=weights, rep=num_episodes)
+        ) = policy_evaluation_mo(self, eval_env, scalarization=scalarization, w=weights, rep=num_episodes)  # 评估策略性能
 
+        # 如果需要，记录评估结果到Wandb
         if log:
             self.__report(
                 scalarized_return,
@@ -237,13 +241,14 @@ class MOAgent(ABC):
             device: (str): The device to use for training. Can be "auto", "cpu" or "cuda".
             seed: (int): The seed to use for the random number generator
         """
-        self.extract_env_info(env)
-        self.device = avilable_device() if device == "auto" else device
-
-        self.global_step = 0
-        self.num_episodes = 0
-        self.seed = seed
-        self.np_random = np.random.default_rng(self.seed)
+        self.extract_env_info(env)  # 提取环境信息（观察空间、动作空间等）
+        self.device = avilable_device() if device == "auto" else device  # 设置计算设备
+        if isinstance(self.device, str):
+            self.device = th.device(self.device)
+        self.global_step = 0  # 全局时间步计数器
+        self.num_episodes = 0  # ep计数器
+        self.seed = seed  # 随机种子
+        self.np_random = np.random.default_rng(self.seed)  # NumPy随机数生成器
 
     def extract_env_info(self, env: Optional[gym.Env]) -> None:
         """Extracts all the features of the environment: observation space, action space, ...
@@ -253,23 +258,29 @@ class MOAgent(ABC):
         """
         # Sometimes, the environment is not instantiated at the moment the MORL algorithms is being instantiated.
         # So env can be None. It is the responsibility of the implemented MORLAlgorithm to call this method in those cases
+        # 环境可能在初始化时还未实例化，因此可能为None
         if env is not None:
             self.env = env
+            # 处理离散观察空间
             if isinstance(self.env.observation_space, spaces.Discrete):
                 self.observation_shape = (1,)
-                self.observation_dim = self.env.observation_space.n
+                self.observation_dim = self.env.observation_space.n  # 离散观察空间的大小
             else:
+                # 处理连续观察空间
                 self.observation_shape = self.env.observation_space.shape
-                self.observation_dim = self.env.observation_space.shape[0]
+                self.observation_dim = self.env.observation_space.shape[0]  # 观察维度
 
             self.action_space = env.action_space
+            # 处理离散动作空间
             if isinstance(self.env.action_space, (spaces.Discrete, spaces.MultiBinary)):
                 self.action_shape = (1,)
-                self.action_dim = self.env.action_space.n
+                self.action_dim = self.env.action_space.n  # 离散动作空间大小
             else:
+                # 处理连续动作空间
                 self.action_shape = self.env.action_space.shape
-                self.action_dim = self.env.action_space.shape[0]
+                self.action_dim = self.env.action_space.shape[0]  # 动作维度
 
+            # 多目标奖励维度
             self.reward_dim = self.env.unwrapped.reward_space.shape[0]
 
     @abstractmethod
@@ -286,6 +297,7 @@ class MOAgent(ABC):
         Args:
             conf: dictionary of additional config parameters
         """
+        # 将额外的配置参数添加到Wandb
         for key, value in conf.items():
             wandb.config[key] = value
 
@@ -307,22 +319,27 @@ class MOAgent(ABC):
         Returns:
             None
         """
-        self.experiment_name = experiment_name
+        self.experiment_name = experiment_name  # 实验名称
+        # 获取环境ID（处理向量化环境情况）
         env_id = self.env.spec.id if not isinstance(self.env, MOSyncVectorEnv) else self.env.envs[0].spec.id
-        cur = datetime.now().strftime("%Y%m%d%H%M%S")
+        cur = datetime.now().strftime("%Y%m%d%H%M%S")  # 当前时间戳
+        # 生成唯一的实验名称：环境_算法_种子_时间
         self.full_experiment_name = f"{env_id}_{experiment_name}_{self.seed}_{cur}"
         import wandb
 
+        # 获取算法配置并添加额外信息
         config = self.get_config()
         config["algo"] = self.experiment_name
         config["device"] = str(self.device)
-        # looks for whether we're using a Gymnasium based env in env_variable
+        # 检查是否监控Gymnasium环境
         monitor_gym = strtobool(os.environ.get("MONITOR_GYM", "True"))
 
+        # 设置Wandb实体（默认为特定团队）
         if entity is None:
             team = "duan-yun-fei-beijing-institute-of-technology"
             entity = os.environ.get("WANDB_ENTITY", team)
         
+        # 设置Wandb模式（在线/离线/禁用）
         if mode is None:
             mode = os.environ.get("WANDB_MODE", "offline")
         
@@ -343,4 +360,4 @@ class MOAgent(ABC):
         """Closes the wandb writer and finishes the run."""
         import wandb
 
-        wandb.finish()
+        wandb.finish()  # 完成并关闭Wandb运行
