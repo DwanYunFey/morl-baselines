@@ -277,8 +277,11 @@ class CAPQL(MOAgent, MOPolicy):
         ).to(self.device)
 
         # Q网络优化器
+        # *将列表解包为多个独立的迭代器参数，
+        # itertools.chain的作用是将多个独立的参数迭代器拼接为一个连续的迭代器
         self.q_optim = optim.Adam(chain(*[net.parameters() for net in self.q_nets]), lr=self.learning_rate)
         # 策略优化器
+        # list(...)：将参数迭代器转换为列表（非必需，Adam 优化器可直接接收迭代器，此处为代码可读性 / 兼容性写法）；
         self.policy_optim = optim.Adam(list(self.policy.parameters()), lr=self.learning_rate)
 
         self._n_updates = 0
@@ -348,9 +351,13 @@ class CAPQL(MOAgent, MOPolicy):
                 # 用目标策略在下一状态采样动作
                 next_actions, log_pi, _ = self.policy.sample(s_next_obs, w)
                 # 用所有目标Q网络评估下一状态-动作对
+                # 单个q_target(...)输出：因是批量处理，标量输出会自动扩展为形状(B, 1)的二维张量
+                # th.stack(..., dim=0)：在第 0 维（网络维度） 拼接 num_q_nets 个(B,1)的张量，最终q_targets形状为 (num_q_nets, B, 1)
                 q_targets = th.stack([q_target(s_next_obs, next_actions, w) for q_target in self.target_q_nets])
                 # 取最小Q值（SAC特性：减少Q值高估）并减去熵项
-                min_target_q = th.min(q_targets, dim=0)[0] - self.alpha * log_pi.reshape(-1, 1)
+                # (num_q_nets, B, 1) → 沿 dim=0 取最小后，消去第 0 维，得到形状 (B, 1) 的张量；
+                # th.min(...)返回元组(最小值张量, 最小值索引)，[0]表示只取最小值张量，丢弃索引
+                min_target_q = th.min(q_targets, dim=0)[0] - self.alpha * log_pi.reshape(-1, 1) # 原log_pi为(B,)（一维）→ 重塑后为 (B, 1)（二维）；
 
                 # 计算Bellman目标：r + γ(1-done) * min_Q(s', a')
                 target_q = (s_rewards + (1 - s_dones.reshape(-1, 1)) * self.gamma * min_target_q).detach()
